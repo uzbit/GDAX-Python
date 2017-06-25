@@ -19,15 +19,9 @@ class OrderBook(WebsocketClient):
         self._bids = RBTree()
         self._client = PublicClient(product_id=product_id)
         self._sequence = -1
-        self._log_to = log_to
-        if self._log_to:
-            assert hasattr(self._log_to, 'write')
         self._current_ticker = None
 
     def on_message(self, message):
-        if self._log_to:
-            pickle.dump(message, self._log_to)
-
         sequence = message['sequence']
         if self._sequence == -1:
             self._asks = RBTree()
