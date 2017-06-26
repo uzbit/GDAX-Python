@@ -17,7 +17,8 @@ class OrderBook(WebsocketClient):
         super(OrderBook, self).__init__(products=product_id)
         self._asks = RBTree()
         self._bids = RBTree()
-        self._client = PublicClient(product_id=product_id)
+        self._client = PublicClient()
+        self._product_id = product_id
         self._sequence = -1
         self._current_ticker = None
 
@@ -26,7 +27,7 @@ class OrderBook(WebsocketClient):
         if self._sequence == -1:
             self._asks = RBTree()
             self._bids = RBTree()
-            res = self._client.get_product_order_book(level=3)
+            res = self._client.get_product_order_book(self._product_id, level=3)
             for bid in res['bids']:
                 self.add({
                     'id': bid[2],
