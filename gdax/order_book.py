@@ -14,15 +14,13 @@ from gdax.websocket_client import WebsocketClient
 
 
 class OrderBook(WebsocketClient):
-    def __init__(self, product_id='BTC-USD', log_to=None):
+    def __init__(self, product_id='BTC-USD'):
         super(OrderBook, self).__init__(products=product_id)
         self._asks = RBTree()
         self._bids = RBTree()
         self._client = PublicClient()
+        self._product_id = product_id
         self._sequence = -1
-        self._log_to = log_to
-        if self._log_to:
-            assert hasattr(self._log_to, 'write')
         self._current_ticker = None
 
     @property
@@ -31,14 +29,11 @@ class OrderBook(WebsocketClient):
         return self.products[0]
 
     def on_message(self, message):
-        if self._log_to:
-            pickle.dump(message, self._log_to)
-
         sequence = message['sequence']
         if self._sequence == -1:
             self._asks = RBTree()
             self._bids = RBTree()
-            res = self._client.get_product_order_book(product_id=self.product_id, level=3)
+            res = self._client.get_product_order_book(self._product_id, level=3)
             for bid in res['bids']:
                 self.add({
                     'id': bid[2],
@@ -164,14 +159,14 @@ class OrderBook(WebsocketClient):
             bids = self.get_bids(price)
             if bids is None or not any(o['id'] == order['order_id'] for o in bids):
                 return
-            index = map(itemgetter('id'), bids).index(order['order_id'])
+            index = [b['id'] for b in bids].index(order['order_id'])
             bids[index]['size'] = new_size
             self.set_bids(price, bids)
         else:
             asks = self.get_asks(price)
             if asks is None or not any(o['id'] == order['order_id'] for o in asks):
                 return
-            index = map(itemgetter('id'), asks).index(order['order_id'])
+            index = [a['id'] for a in asks].index(order['order_id'])
             asks[index]['size'] = new_size
             self.set_asks(price, asks)
 
