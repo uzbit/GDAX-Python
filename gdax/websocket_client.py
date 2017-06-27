@@ -5,10 +5,11 @@
 # Template object to receive messages from the gdax Websocket Feed
 
 from __future__ import print_function
+import time
 import json
 
 from threading import Thread
-from websocket import create_connection, WebSocketConnectionClosedException
+from websocket import create_connection, WebSocketConnectionClosedException, WebSocketBadStatusException
 
 
 class WebsocketClient(object):
@@ -22,7 +23,8 @@ class WebsocketClient(object):
 
     def start(self):
         def _go():
-            self._connect()
+            while not self._connect():
+                time.sleep(1)
             self._listen()
 
         self.on_open()
@@ -38,7 +40,10 @@ class WebsocketClient(object):
         if self.url[-1] == "/":
             self.url = self.url[:-1]
 
-        self.ws = create_connection(self.url)
+        try:
+            self.ws = create_connection(self.url)
+        except WebSocketBadStatusException:
+            return False
 
         self.stop = False
         sub_params = {'type': 'subscribe', 'product_ids': self.products}
@@ -46,6 +51,7 @@ class WebsocketClient(object):
         if self.type == "heartbeat":
             sub_params = {"type": "heartbeat", "on": True}
             self.ws.send(json.dumps(sub_params))
+        return True
 
     def _listen(self):
         while not self.stop:
@@ -62,6 +68,7 @@ class WebsocketClient(object):
                 self.ws.send(json.dumps({"type": "heartbeat", "on": False}))
             self.on_close()
             self.stop = True
+            self.ws = None
             try:
                 if self.ws:
                     self.ws.close()
