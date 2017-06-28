@@ -6,6 +6,7 @@
 
 from bintrees import RBTree
 from decimal import Decimal
+import time
 
 from gdax.public_client import PublicClient
 from gdax.websocket_client import WebsocketClient
@@ -48,6 +49,7 @@ class OrderBook(WebsocketClient):
         elif sequence > self._sequence + 1:
             print('Error: messages missing ({} - {}). Re-initializing websocket.'.format(sequence, self._sequence))
             self.close()
+            time.sleep(1)
             self.start()
             return
 
@@ -100,11 +102,17 @@ class OrderBook(WebsocketClient):
             self.set_asks(order['price'], asks)
 
     def remove(self, order):
-        price = Decimal(order['price'])
-        if order['side'] == 'buy':
+        try:
+            price = Decimal(order['price'])
+            order_id = order['order_id']
+            side = order['side']
+        except KeyError:
+            return
+
+        if side == 'buy':
             bids = self.get_bids(price)
             if bids is not None:
-                bids = [o for o in bids if o['id'] != order['order_id']]
+                bids = [o for o in bids if o['id'] != order_id]
                 if len(bids) > 0:
                     self.set_bids(price, bids)
                 else:
@@ -112,21 +120,26 @@ class OrderBook(WebsocketClient):
         else:
             asks = self.get_asks(price)
             if asks is not None:
-                asks = [o for o in asks if o['id'] != order['order_id']]
+                asks = [o for o in asks if o['id'] != order_id]
                 if len(asks) > 0:
                     self.set_asks(price, asks)
                 else:
                     self.remove_asks(price)
 
     def match(self, order):
-        size = Decimal(order['size'])
-        price = Decimal(order['price'])
+        try:
+            size = Decimal(order['size'])
+            price = Decimal(order['price'])
+            side = order['side']
+            maker_order_id = order['maker_order_id']
+        except KeyError:
+            return
 
-        if order['side'] == 'buy':
+        if side == 'buy':
             bids = self.get_bids(price)
             if not bids:
                 return
-            assert bids[0]['id'] == order['maker_order_id']
+            assert bids[0]['id'] == maker_order_id
             if bids[0]['size'] == size:
                 self.set_bids(price, bids[1:])
             else:
@@ -136,7 +149,7 @@ class OrderBook(WebsocketClient):
             asks = self.get_asks(price)
             if not asks:
                 return
-            assert asks[0]['id'] == order['maker_order_id']
+            assert asks[0]['id'] == maker_order_id
             if asks[0]['size'] == size:
                 self.set_asks(price, asks[1:])
             else:
@@ -144,28 +157,33 @@ class OrderBook(WebsocketClient):
                 self.set_asks(price, asks)
 
     def change(self, order):
-        new_size = Decimal(order['new_size'])
-        price = Decimal(order['price'])
+        try:
+            new_size = Decimal(order['new_size'])
+            price = Decimal(order['price'])
+            order_id = order['order_id']
+            side = order['side']
+        except KeyError:
+            return
 
-        if order['side'] == 'buy':
+        if side == 'buy':
             bids = self.get_bids(price)
-            if bids is None or not any(o['id'] == order['order_id'] for o in bids):
+            if bids is None or not any(o['id'] == order_id for o in bids):
                 return
-            index = [b['id'] for b in bids].index(order['order_id'])
+            index = [b['id'] for b in bids].index(order_id)
             bids[index]['size'] = new_size
             self.set_bids(price, bids)
         else:
             asks = self.get_asks(price)
-            if asks is None or not any(o['id'] == order['order_id'] for o in asks):
+            if asks is None or not any(o['id'] == order_id for o in asks):
                 return
-            index = [a['id'] for a in asks].index(order['order_id'])
+            index = [a['id'] for a in asks].index(order_id)
             asks[index]['size'] = new_size
             self.set_asks(price, asks)
 
         tree = self._asks if order['side'] == 'sell' else self._bids
         node = tree.get(price)
 
-        if node is None or not any(o['id'] == order['order_id'] for o in node):
+        if node is None or not any(o['id'] == order_id for o in node):
             return
 
     def get_current_ticker(self):
