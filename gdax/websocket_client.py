@@ -27,7 +27,6 @@ class WebsocketClient(object):
                 time.sleep(1)
             self._listen()
 
-        self.on_open()
         self.thread = Thread(target=_go)
         self.thread.start()
 
@@ -45,12 +44,14 @@ class WebsocketClient(object):
         except WebSocketBadStatusException:
             return False
 
-        self.stop = False
         sub_params = {'type': 'subscribe', 'product_ids': self.products}
-        self.ws.send(json.dumps(sub_params))
+
         if self.type == "heartbeat":
             sub_params = {"type": "heartbeat", "on": True}
-            self.ws.send(json.dumps(sub_params))
+
+        self.stop = False
+        self.ws.send(json.dumps(sub_params))
+        self.on_open()
         return True
 
     def _listen(self):
@@ -66,14 +67,16 @@ class WebsocketClient(object):
         if not self.stop:
             if self.type == "heartbeat":
                 self.ws.send(json.dumps({"type": "heartbeat", "on": False}))
-            self.on_close()
-            self.stop = True
-            self.ws = None
+
             try:
                 if self.ws:
                     self.ws.close()
-            except WebSocketConnectionClosedException as e:
+            except WebSocketConnectionClosedException:
                 pass
+
+            self.stop = True
+            self.on_close()
+            self.ws = None
 
     def on_open(self):
         print("-- Subscribed! --\n")
