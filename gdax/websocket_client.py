@@ -76,6 +76,7 @@ class WebsocketClient(object):
 
             self.stop = True
             self.on_close()
+            self.thread.join()
             self.ws = None
 
     def on_open(self):
