@@ -48,7 +48,7 @@ class OrderBook(WebsocketClient):
             return
         elif sequence > self._sequence + 1:
             print('Error: messages missing ({} - {}). Re-initializing websocket.'.format(sequence, self._sequence))
-            self._restart()
+            self.restart()
             return
 
         msg_type = message['type']
@@ -73,9 +73,9 @@ class OrderBook(WebsocketClient):
         # print('bid: %f @ %f - ask: %f @ %f' % (bid_depth, bid, ask_depth, ask))
 
     def on_error(self, e):
-        self._restart()
+        self.restart()
 
-    def _restart(self):
+    def restart(self):
         self._sequence = -1
         self.close()
         time.sleep(1)
