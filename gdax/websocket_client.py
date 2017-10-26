@@ -25,6 +25,7 @@ class WebsocketClient(object):
         def _go():
             while not self._connect():
                 time.sleep(1)
+                print("Trying to connect...")
             self._listen()
 
         self.thread = Thread(target=_go)
@@ -42,6 +43,7 @@ class WebsocketClient(object):
         try:
             self.ws = create_connection(self.url)
         except WebSocketBadStatusException:
+            print("WebSocketBadStatusException...")
             return False
 
         sub_params = {'type': 'subscribe', 'product_ids': self.products}
@@ -57,6 +59,9 @@ class WebsocketClient(object):
     def _listen(self):
         while not self.stop:
             try:
+                if int(time.time() % 30) == 0:
+                    # Set a 30 second ping to keep connection alive
+                    self.ws.ping("keepalive")
                 msg = json.loads(self.ws.recv())
             except Exception as e:
                 self.on_error(e)
