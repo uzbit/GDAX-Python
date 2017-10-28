@@ -25,7 +25,7 @@ class WebsocketClient(object):
         def _go():
             while not self._connect():
                 time.sleep(1)
-                print("Trying to connect...")
+                print("Error: Trying to connect...")
             self._listen()
 
         self.thread = Thread(target=_go)
@@ -43,7 +43,7 @@ class WebsocketClient(object):
         try:
             self.ws = create_connection(self.url)
         except WebSocketBadStatusException:
-            print("WebSocketBadStatusException...")
+            print("Error: WebSocketBadStatusException")
             return False
 
         sub_params = {'type': 'subscribe', 'product_ids': self.products}
@@ -94,7 +94,8 @@ class WebsocketClient(object):
         print(msg)
 
     def on_error(self, e):
-        return
+        print("Error: " + str(e))
+
 
 if __name__ == "__main__":
     import gdax

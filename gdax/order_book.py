@@ -45,6 +45,7 @@ class OrderBook(WebsocketClient):
 
         if sequence <= self._sequence:
             # ignore older messages (e.g. before order book initialization from getProductOrderBook)
+            print("Error: sequence too old.")
             return
         elif sequence > self._sequence + 1:
             print('Error: messages missing ({} - {}). Re-initializing websocket.'.format(sequence, self._sequence))
@@ -64,18 +65,11 @@ class OrderBook(WebsocketClient):
 
         self._sequence = sequence
 
-        # bid = self.get_bid()
-        # bids = self.get_bids(bid)
-        # bid_depth = sum([b['size'] for b in bids])
-        # ask = self.get_ask()
-        # asks = self.get_asks(ask)
-        # ask_depth = sum([a['size'] for a in asks])
-        # print('bid: %f @ %f - ask: %f @ %f' % (bid_depth, bid, ask_depth, ask))
-
     def on_error(self, e):
         self.restart()
 
     def restart(self):
+        print("Error: order_book restarting")
         self._sequence = -1
         self.close()
         time.sleep(1)
@@ -197,6 +191,7 @@ class OrderBook(WebsocketClient):
             'asks': [],
             'bids': [],
         }
+
         for ask in self._asks:
             try:
                 # There can be a race condition here, where a price point is removed
@@ -206,6 +201,7 @@ class OrderBook(WebsocketClient):
                 continue
             for order in this_ask:
                 result['asks'].append([order['price'], order['size'], order['id']])
+
         for bid in self._bids:
             try:
                 # There can be a race condition here, where a price point is removed
@@ -213,9 +209,9 @@ class OrderBook(WebsocketClient):
                 this_bid = self._bids[bid]
             except (KeyError, TypeError):
                 continue
-
             for order in this_bid:
                 result['bids'].append([order['price'], order['size'], order['id']])
+
         return result
 
     def get_ask(self):
@@ -244,7 +240,6 @@ class OrderBook(WebsocketClient):
 
 
 if __name__ == '__main__':
-    import time
 
     order_book = OrderBook()
     order_book.start()
