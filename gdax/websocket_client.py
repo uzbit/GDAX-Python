@@ -22,14 +22,14 @@ class WebsocketClient(object):
         self.thread = None
 
     def start(self):
-        def _go():
-            while not self._connect():
-                time.sleep(1)
-                print("Error: Trying to connect...")
-            self._listen()
-
-        self.thread = Thread(target=_go)
+        self.thread = Thread(target=self._go)
         self.thread.start()
+
+    def _go(self):
+        while not self._connect():
+            time.sleep(1)
+            print("Error: Trying to connect...")
+        self._listen()
 
     def _connect(self):
         if self.products is None:
