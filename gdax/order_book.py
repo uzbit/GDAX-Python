@@ -66,6 +66,7 @@ class OrderBook(WebsocketClient):
         self._sequence = sequence
 
     def on_error(self, e):
+        print("Error: " + str(e))
         self.restart()
 
     def restart(self):
