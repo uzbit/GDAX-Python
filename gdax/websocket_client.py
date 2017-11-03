@@ -24,6 +24,7 @@ class WebsocketClient(object):
     def start(self):
         self.thread = Thread(target=self._go)
         self.thread.start()
+        self.thread.join()
 
     def _go(self):
         while not self._connect():
@@ -81,8 +82,6 @@ class WebsocketClient(object):
 
             self.stop = True
             self.on_close()
-            if self.thread:
-                self.thread.join()
             self.ws = None
 
     def on_open(self):
