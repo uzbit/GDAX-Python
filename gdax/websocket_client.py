@@ -24,7 +24,7 @@ class WebsocketClient(object):
     def start(self):
         self.thread = Thread(target=self._go)
         self.thread.start()
-        self.thread.join()
+        #self.thread.join()
 
     def _go(self):
         while not self._connect():

@@ -46,11 +46,12 @@ class OrderBook(WebsocketClient):
         if sequence <= self._sequence:
             # ignore older messages (e.g. before order book initialization from getProductOrderBook)
             print("Error: sequence too old.")
-            return
+            self.restart()
+			return 
         elif sequence > self._sequence + 1:
             print('Error: messages missing ({} - {}). Re-initializing websocket.'.format(sequence, self._sequence))
             self.restart()
-            return
+            return 
 
         msg_type = message['type']
         if msg_type == 'open':
