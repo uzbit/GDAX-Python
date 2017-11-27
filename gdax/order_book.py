@@ -4,7 +4,7 @@
 #
 # Live order book updated from the gdax Websocket Feed
 
-from bintrees import RBTree
+from bintrees import FastRBTree 
 from decimal import Decimal
 import time
 
@@ -14,8 +14,8 @@ from gdax.websocket_client import WebsocketClient
 class OrderBook(WebsocketClient):
     def __init__(self, product_id='BTC-USD'):
         super(OrderBook, self).__init__(products=product_id)
-        self._asks = RBTree()
-        self._bids = RBTree()
+        self._asks = FastRBTree()
+        self._bids = FastRBTree()
         self._client = PublicClient()
         self._product_id = product_id
         self._sequence = -1
@@ -24,8 +24,8 @@ class OrderBook(WebsocketClient):
     def on_message(self, message):
         sequence = message['sequence']
         if self._sequence == -1:
-            self._asks = RBTree()
-            self._bids = RBTree()
+            self._asks = FastRBTree()
+            self._bids = FastRBTree()
             res = self._client.get_product_order_book(self._product_id, level=3)
             for bid in res['bids']:
                 self.add({
