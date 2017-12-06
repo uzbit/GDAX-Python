@@ -28,7 +28,7 @@ class WebsocketClient(object):
 
     def _go(self):
         while not self._connect():
-            time.sleep(1)
+            time.sleep(10)
             print("Error: Trying to connect...")
         self._listen()
 
@@ -43,8 +43,8 @@ class WebsocketClient(object):
 
         try:
             self.ws = create_connection(self.url)
-        except WebSocketBadStatusException:
-            print("Error: WebSocketBadStatusException")
+        except Exception as e:
+            print("Error connecting: %s" % str(e))
             return False
 
         sub_params = {'type': 'subscribe', 'product_ids': self.products}
