@@ -4,7 +4,7 @@
 #
 # Live order book updated from the gdax Websocket Feed
 
-from bintrees import FastRBTree 
+from bintrees import FastRBTree
 from decimal import Decimal
 import time
 
@@ -47,11 +47,11 @@ class OrderBook(WebsocketClient):
             # ignore older messages (e.g. before order book initialization from getProductOrderBook)
             print("Error: sequence too old.")
             self._sequence = sequence
-            return 
+            return
         elif sequence > self._sequence + 1:
             print('Error: messages missing ({} - {}). Re-initializing websocket.'.format(sequence, self._sequence))
             self.restart()
-            return 
+            return
 
         msg_type = message['type']
         if msg_type == 'open':
@@ -73,6 +73,7 @@ class OrderBook(WebsocketClient):
     def restart(self):
         print("Error: order_book restarting")
         self._sequence = -1
+        self._current_ticker = None
         self.close()
         time.sleep(1)
         self.start()
