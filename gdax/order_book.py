@@ -6,6 +6,7 @@
 
 from bintrees import FastRBTree
 from decimal import Decimal
+import traceback
 import time
 
 from gdax.public_client import PublicClient
@@ -67,6 +68,7 @@ class OrderBook(WebsocketClient):
         self._sequence = sequence
 
     def on_error(self, e):
+        traceback.print_exc()
         print("Error: " + str(e))
         self.restart()
 

@@ -5,6 +5,7 @@
 # Template object to receive messages from the gdax Websocket Feed
 
 from __future__ import print_function
+import traceback
 import time
 import json
 
@@ -94,6 +95,7 @@ class WebsocketClient(object):
         print(msg)
 
     def on_error(self, e):
+        traceback.print_exc()
         print("Error: " + str(e))
 
 
