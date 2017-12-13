@@ -27,7 +27,12 @@ class OrderBook(WebsocketClient):
         if self._sequence == -1:
             self._asks = FastRBTree()
             self._bids = FastRBTree()
-            res = self._client.get_product_order_book(self._product_id, level=3)
+            try:
+                res = self._client.get_product_order_book(self._product_id, level=3)
+            except Exception as e:
+                self.on_error(e)
+                return
+
             for bid in res['bids']:
                 self.add({
                     'id': bid[2],
@@ -77,7 +82,7 @@ class OrderBook(WebsocketClient):
         self._sequence = -1
         self._current_ticker = None
         self.close()
-        time.sleep(1)
+        time.sleep(5)
         self.start()
 
     def add(self, order):
