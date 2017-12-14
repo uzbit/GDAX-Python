@@ -21,6 +21,7 @@ class WebsocketClient(object):
         self.stop = False
         self.ws = None
         self.thread = None
+        self.killme = False
 
     def start(self):
         self.thread = Thread(target=self._go)
@@ -67,6 +68,7 @@ class WebsocketClient(object):
                 msg = json.loads(self.ws.recv())
             except Exception as e:
                 self.on_error(e)
+                self.killme = True
             else:
                 self.on_message(msg)
 
