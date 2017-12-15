@@ -55,8 +55,8 @@ class OrderBook(WebsocketClient):
             self._sequence = sequence
             return
         elif sequence > self._sequence + 1:
-            print('Error: messages missing ({} - {}). Re-initializing websocket.'.format(sequence, self._sequence))
-            self.restart()
+            error = 'Error: messages missing ({} - {}). Re-initializing websocket.'.format(sequence, self._sequence)
+            self.on_error(error)
             return
 
         msg_type = message['type']
@@ -65,7 +65,10 @@ class OrderBook(WebsocketClient):
         elif msg_type == 'done' and 'price' in message:
             self.remove(message)
         elif msg_type == 'match':
-            self.match(message)
+            try:
+                self.match(message)
+            except Exception as e:
+                self.on_error(e)
             self._current_ticker = message
         elif msg_type == 'change':
             self.change(message)
@@ -75,15 +78,16 @@ class OrderBook(WebsocketClient):
     def on_error(self, e):
         traceback.print_exc()
         print("Error: " + str(e))
-        self.restart()
+        self.killme = True
 
-    def restart(self):
-        print("Error: order_book restarting")
-        self._sequence = -1
-        self._current_ticker = None
-        self.close()
-        time.sleep(5)
-        self.start()
+    # def restart(self):
+    #     print("Error: order_book restarting")
+    #     self.killme = True
+    #     self._sequence = -1
+    #     self._current_ticker = None
+    #     self.close()
+    #     time.sleep(5)
+    #     self.start()
 
     def add(self, order):
         order = {

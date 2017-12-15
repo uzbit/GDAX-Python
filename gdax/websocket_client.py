@@ -68,7 +68,6 @@ class WebsocketClient(object):
                 msg = json.loads(self.ws.recv())
             except Exception as e:
                 self.on_error(e)
-                self.killme = True
             else:
                 self.on_message(msg)
 
@@ -97,6 +96,7 @@ class WebsocketClient(object):
         print(msg)
 
     def on_error(self, e):
+        self.killme = True
         traceback.print_exc()
         print("Error: " + str(e))
 
