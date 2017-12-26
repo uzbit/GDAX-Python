@@ -6,7 +6,6 @@
 
 from bintrees import FastRBTree
 from decimal import Decimal
-import traceback
 import time
 
 from gdax.public_client import PublicClient
@@ -74,20 +73,6 @@ class OrderBook(WebsocketClient):
             self.change(message)
 
         self._sequence = sequence
-
-    def on_error(self, e):
-        traceback.print_exc()
-        print("Error: " + str(e))
-        self.killme = True
-
-    # def restart(self):
-    #     print("Error: order_book restarting")
-    #     self.killme = True
-    #     self._sequence = -1
-    #     self._current_ticker = None
-    #     self.close()
-    #     time.sleep(5)
-    #     self.start()
 
     def add(self, order):
         order = {

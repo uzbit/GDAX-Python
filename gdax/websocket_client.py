@@ -96,6 +96,7 @@ class WebsocketClient(object):
         print(msg)
 
     def on_error(self, e):
+        self.stop = True
         self.killme = True
         traceback.print_exc()
         print("Error: " + str(e))
