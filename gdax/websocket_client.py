@@ -85,9 +85,9 @@ class WebsocketClient(object):
     def _listen(self):
         while not self.stop:
             try:
-                if int(time.time() % 30) == 0:
-                    # Set a 30 second ping to keep connection alive
-                    self.ws.ping("keepalive")
+                # if int(time.time() % 30) == 0:
+                #     # Set a 30 second ping to keep connection alive
+                #     self.ws.ping("keepalive")
                 data = self.ws.recv()
                 msg = json.loads(data)
             except ValueError as e:
@@ -127,10 +127,16 @@ class WebsocketClient(object):
             self.mongo_collection.insert_one(msg)
 
     def on_error(self, e, data=None):
-        self.error = e
-        self.stop = True
-        self.killme = True
         print('{} - data: {}'.format(e, data))
+        if 'Errno 104' in str(e):
+            self.close()
+            time.sleep(5)
+            self.start()
+        else:
+            self.error = e
+            self.stop = True
+            self.killme = True
+
 
 
 if __name__ == "__main__":
