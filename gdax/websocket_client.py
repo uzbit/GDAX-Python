@@ -110,7 +110,7 @@ class WebsocketClient(object):
 
     def close(self):
         self.stop = True
-        self.thread.join()
+        #self.thread.join()
 
     def on_open(self):
         if self.should_print:
